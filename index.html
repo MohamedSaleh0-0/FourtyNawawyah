@@ -1111,15 +1111,30 @@
         recognition.onresult = function(event) {
             totalVoiceResultsLength = event.results.length;
             let finalizedChunk = '';
-            let interimChunk = '';
 
+            // نكتفي بقراءة الكلمات المكتملة والمؤكدة تماماً من المحرك لمنع التكرار على الموبايل
             for (let i = micBaseIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalizedChunk += event.results[i][0].transcript + ' ';
-                } else {
-                    interimChunk += event.results[i][0].transcript;
                 }
             }
+
+            if (!userStates[currentIndex].checked && finalizedChunk) {
+                const fieldId = activeField === 'sanad' 
+                    ? 'hadith-sanad-input' 
+                    : (activeField === 'matn' ? 'hadith-matn-input' : 'hadith-takhreej-input');
+                const targetEl = document.getElementById(fieldId);
+                if (!targetEl) return;
+                
+                // تحديث الحقل فقط بالكتل المؤكدة نهائياً ومسح تراكم الـ Interim المشوش
+                const updatedFinal = (textSnapshots[activeField] + ' ' + finalizedChunk).replace(/\s+/g, ' ').trim();
+                targetEl.value = updatedFinal;
+                
+                if (activeField === 'sanad') userStates[currentIndex].userSanad = updatedFinal;
+                if (activeField === 'matn') userStates[currentIndex].userMatn = updatedFinal;
+                if (activeField === 'takhreej') userStates[currentIndex].userTakhreej = updatedFinal;
+            }
+        };
 
             if (!userStates[currentIndex].checked) {
                 const fieldId = activeField === 'sanad' 
