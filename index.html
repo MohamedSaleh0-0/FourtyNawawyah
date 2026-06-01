@@ -1,0 +1,1579 @@
+<!--
+===================================================================
+منظومة اختبار حفظ الأربعون النووية البرمجية
+===================================================================
+الإصدار: Version 4.2.0 (الإصدار الإنتاجي عالي الاستقرار الشامل)
+التاريخ: 1 يونيو 2026 م
+المطور: هندسة الذكاء الاصطناعي التكيفي
+الوصف: ملف مستقل مصلح بالكامل يعتمد على التفكيك الصلب الشامل لـ 42 حديثاً مع استقرار كامل للمايك الحركي.
+===================================================================
+-->
+
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منظومة اختبار حفظ الأربعون النووية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght=400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Dark Theme (Default) */
+            --bg-color: #051c15;       
+            --card-bg: #09241e;             
+            --accent-color: #cca45c;        
+            --accent-hover: #b38f48;
+            --text-main: #f4f0e6;           
+            --text-muted: #8fa099;          
+            --border-color: #1a423a;
+            --error-box: #2b1616;
+            --error-border: #e53e3e;
+            --success-box: #0c2d1c;
+            --success-border: #38a169;
+            --border-radius: 14px;
+        }
+
+        body.light-theme {
+            /* Light Theme */
+            --bg-color: #faf6ee;       
+            --card-bg: #ffffff;             
+            --accent-color: #a87f32;        
+            --accent-hover: #8c6421;
+            --text-main: #1a3026;           
+            --text-muted: #61756c;          
+            --border-color: #e2d9c8;
+            --error-box: #fff5f5;
+            --error-border: #e53e3e;
+            --success-box: #f0fff4;
+            --success-border: #38a169;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .quiz-container {
+            background: var(--card-bg);
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l30 30-30 30L0 30z' fill='%23cca45c' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+            width: 100%;
+            max-width: 1000px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            padding: 24px;
+            box-sizing: border-box;
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-top: 6px solid var(--accent-color);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        @media (min-width: 768px) {
+            .quiz-container {
+                padding: 40px;
+            }
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .global-mic-btn {
+            background: transparent;
+            border: 2px solid var(--success-border);
+            color: var(--success-border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 900;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .global-mic-btn:hover {
+            background: rgba(56, 161, 105, 0.1);
+        }
+
+        .global-mic-active {
+            background-color: var(--error-border) !important;
+            color: white !important;
+            border-color: var(--error-border) !important;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.98); opacity: 0.8; }
+            100% { transform: scale(1); }
+        }
+
+        .corner-decoration {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--accent-color);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .top-right { top: 14px; right: 14px; border-left: none; border-bottom: none; border-radius: 0 var(--border-radius) 0 0; }
+        .top-left { top: 14px; left: 14px; border-right: none; border-bottom: none; border-radius: var(--border-radius) 0 0 0; }
+        .bottom-right { bottom: 14px; right: 14px; border-left: none; border-top: none; border-radius: 0 0 var(--border-radius) 0; }
+        .bottom-left { bottom: 14px; left: 14px; border-right: none; border-top: none; border-radius: 0 0 0 var(--border-radius); }
+
+        .decorative-line {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--accent-color);
+            font-size: 0.9em;
+            margin: 25px 0;
+            font-weight: 700;
+        }
+        
+        .decorative-line::before, .decorative-line::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .decorative-line:not(:empty)::before { margin-left: 1em; }
+        .decorative-line:not(:empty)::after { margin-right: 1em; }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 3px;
+            background: var(--border-color);
+            border-radius: 2px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .start-screen h1 {
+            color: var(--accent-color);
+            font-weight: 900;
+            font-size: 1.8em;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .start-screen p {
+            color: var(--text-muted);
+            margin-bottom: 35px;
+            font-size: 1.05em;
+            text-align: center;
+        }
+
+        .start-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 14px;
+            border: 1px solid var(--accent-color);
+            background-color: transparent;
+            color: var(--accent-color);
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .start-btn:hover {
+            background-color: var(--accent-color);
+            color: var(--card-bg);
+            box-shadow: 0 0 15px rgba(204, 164, 92, 0.2);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .progress-text {
+            font-size: 0.95em;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .score-text {
+            font-size: 0.95em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 0.95em;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 16px;
+            resize: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, background-color 0.3s;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 480px) {
+            .actions-row {
+                flex-direction: column;
+            }
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-primary { background-color: var(--accent-color); color: var(--card-bg); }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+        .btn-secondary { background-color: var(--border-color); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { opacity: 0.9; }
+        .btn-warning { background-color: #272c1c; color: #c2b078; border: 1px solid #424731; }
+        body.light-theme .btn-warning { background-color: #fcf6e5; color: #8a6d3b; border: 1px solid #f1e4c3; }
+        .btn-danger { background-color: #2d1818; color: #e53e3e; border: 1px solid #4a2323; }
+        body.light-theme .btn-danger { background-color: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+
+        .btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .feedback-section {
+            margin-top: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .responsive-comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 850px) {
+            .responsive-comparison-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .comparison-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comparison-column h4 {
+            margin: 0 0 6px 0;
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+
+        .correct-text-box {
+            background: transparent;
+            border: none;
+            padding: 6px 0;
+            border-radius: 0;
+            color: var(--text-main);
+            line-height: 1.8;
+            font-size: 1.05em;
+            flex: 1;
+        }
+
+        .user-diff-box {
+            padding: 6px 0;
+            border-radius: 0;
+            line-height: 1.8;
+            font-size: 1.05em;
+            flex: 1;
+            color: var(--text-main);
+        }
+
+        .diff-error {
+            color: #ff6b6b;
+            background-color: rgba(229, 62, 62, 0.12);
+            padding: 2px 4px;
+            border-radius: 4px;
+            text-decoration: line-through;
+            font-weight: 700;
+        }
+        
+        .diff-ghost {
+            color: #ff4d4d;
+            font-weight: bold;
+            margin: 0 2px;
+            border-bottom: 2px dashed #ff4d4d;
+        }
+
+        .correct-highlight {
+            color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.12);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .diff-correct { color: var(--text-main); }
+
+        .diff-legend {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin: 8px 0 12px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+        .legend-error { color: #ff6b6b; font-weight: 700; }
+        .legend-missing { color: #2ecc71; font-weight: 700; }
+
+        .segment-review {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+
+        .segment-score {
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.9em;
+        }
+
+        .mic-row {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .btn-main-action {
+            font-size: 1.12em;
+            padding: 16px;
+            box-shadow: 0 10px 24px rgba(204, 164, 92, 0.18);
+        }
+
+        .btn-skip {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-skip:hover { background-color: rgba(255, 255, 255, 0.04); }
+
+        .advanced-settings {
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .advanced-settings details {
+            display: inline-block;
+            text-align: right;
+        }
+
+        .advanced-settings summary {
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.9em;
+            font-weight: 700;
+            list-style: none;
+        }
+
+        .advanced-settings summary::-webkit-details-marker { display: none; }
+
+        .advanced-reset-link {
+            background: none;
+            border: none;
+            color: var(--error-border);
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-top: 10px;
+            text-decoration: underline;
+            font-family: inherit;
+        }
+
+        .final-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 18px 0 14px;
+        }
+
+        @media (min-width: 640px) {
+            .final-stats { grid-template-columns: 1fr 1fr; }
+        }
+
+        .stat-item {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .final-recommendation {
+            font-size: 0.95em;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .final-screen { text-align: center; }
+        .final-score {
+            font-size: 3.5em;
+            font-weight: 900;
+            color: var(--accent-color);
+            margin: 16px 0;
+        }
+        
+        .score-badge {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+        }
+
+        .badge-success { background: var(--success-box); color: var(--text-main); border-color: var(--success-border); }
+        .badge-error { background: var(--error-box); color: var(--text-main); border-color: var(--error-border); }
+
+        .errors-report-container {
+            margin-top: 24px;
+            text-align: right;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+        }
+
+        .error-report-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .error-report-title {
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 12px;
+        }
+        
+        .internal-hint-btn {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 6px 14px;
+            font-size: 0.85em;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 6px;
+            display: inline-block;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .internal-hint-btn:hover {
+            background: rgba(204, 164, 92, 0.1);
+        }
+        
+        .internal-hint-text {
+            font-size: 0.95em;
+            color: var(--text-main);
+            margin-top: 8px;
+            display: none;
+            background: var(--primary-color);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            line-height: 1.6;
+        }
+        
+        .instruction {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            margin-top: 6px;
+            display: block;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quiz-app">
+    <div class="corner-decoration top-right"></div>
+    <div class="corner-decoration top-left"></div>
+    <div class="corner-decoration bottom-right"></div>
+    <div class="corner-decoration bottom-left"></div>
+</div>
+
+<script>
+    const ahadithData = [
+        {
+            id: 1,
+            title: "الأعمال بالنيات",
+            sanad: "عن أمير المؤمنين أبي حفص عمر بن الخطاب رضي الله عنه قال سمعت رسول الله صلى الله عليه وسلم يقول",
+            matn: "إنما الأعمال بالنيات وإنما لكل امرئ ما نوى فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله ومن كانت هجرته لدنيا يصيبها أو امرأة ينكحها فهجرته إلى ما هاجر إليه",
+            takhreej: "رواه إماما المحدثين أبو عبد الله محمد بن إسماعيل بن إبراهيم بن المغيرة بن بردزبة البخاري وأبو الحسين مسلم بن الحجاج بن مسلم القشيري النيسابوري في صحيحيهما اللذين هما أصح الكتب المصنفة"
+        },
+        {
+            id: 2,
+            title: "مراتب الدين",
+            sanad: "عن عمر رضي الله عنه أيضا قال ",
+            matn: "يا محمد أخبرني عن الإسلام فقال رسول الله صلى الله عليه وسلم الإسلام أن تشهد أن لا إله إلا الله وأن محمدا رسول الله وتقيم الصلاة وتؤتي الزكاة وتصوم رمضان وتحج البيت إن استطعت إليه سبيلا قال صدقت فعجبنا له يسأله ويصدقه قال فأخبرني عن الإيمان قال أن تؤمن بالله وملائكته وكتبه ورسله واليوم الآخر وتؤمن بالقدر خيره وشره قال صدقت قال فأخبرني عن الإحسان قال أن تعبد الله كأنك تراه فإن لم تكن تراه فإنه يراك قال فأخبرني عن الساعة قال ما المسؤول عنها بأعلم من السائل قال فأخبرني عن أماراتها قال أن تلد الأمة ربتها وأن ترى الحفاة العراة العالة رعاء الشاء يتطاولون في البنيان ثم انطلق فلبثت مليا ثم قال يا عمر أتدري من السائل قلت الله ورسوله أعلم قال فإنه جبريل أتاكم يعلمكم دينكمبينما نحن عند رسول الله صلى الله عليه وسلم ذات يوم إذ طلع علينا رجل شديد بياض الثياب شديد سواد الشعر لا يرى عليه أثر السفر ولا يعرفه منا أحد حتى جلس إلى النبي صلى الله عليه وسلم فأسند ركبتيه إلى ركبتيه ووضع كفيه على فخذيه وقال ",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 3,
+            title: "بناء الإسلام على خمس",
+            sanad: "عن أبي عبد الرحمن عبد الله بن عمر بن الخطاب رضي الله عنهما قال سمعت رسول الله صلى الله عليه وسلم يقول",
+            matn: "بني الإسلام على خمس شهادة أن لا إله إلا الله وأن محمدا عبده ورسوله وإقام الصلاة وإيتاء الزكاة وحج البيت وصوم رمضان",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 4,
+            title: "مراحل خلق الإنسان",
+            sanad: "عن أبي عبد الرحمن عبد الله بن مسعود رضي الله عنه قال حدثنا رسول الله صلى الله عليه وسلم وهو الصادق المصدوق",
+            matn: "إن أحدكم يجمع خلقه في بطن أمه أربعين يوما ثم يكون علقة مثل ذلك ثم يكون مضغة مثل ذلك ثم يرسل الملك فينفخ فيه الروح ويؤمر بأربع كلمات بكتب رزقه وأجله وعمله وشقي أو سعيد فوالذي لا إله غيره إن أحدكم ليعمل بعمل أهل الجنة حتى ما يكون بينه وبينها إلا ذراع فيسبق عليه الكتاب فيعمل بعمل أهل النار فيدخلها وإن أحدكم ليعمل بعمل أهل النار حتى ما يكون بينه وبينها إلا ذراع فيسبق عليه الكتاب فيعمل بعمل أهل الجنة فيدخلها",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 5,
+            title: "من أحدث في الأمر",
+            sanad: "عن أم المؤمنين أم عبد الله عائشة رضي الله عنها قالت قال رسول الله صلى الله عليه وسلم",
+            matn: "من أحدث في أمرنا هذا ما ليس منه فهو رد",
+            takhreej: "رواه البخاري ومسلم وفي رواية لمسلم من عمل عملا ليس عليه أمرنا فهو رد"
+        },
+        {
+            id: 6,
+            title: "الحلال والحرام والمشتبهات",
+            sanad: "عن أبي عبد الله النعمان بن بشير رضي الله عنهما قال سمعت رسول الله صلى الله عليه وسلم يقول",
+            matn: "إن الحلال بين وإن الحرام بين وبينهما مشتبهات لا يعلمهن كثير من الناس فمن اتقى الشبهات استبرأ لدينه وعرضه ومن وقع في الشبهات وقع في الحرام كالراعي يرعى حول الحمى يوشك أن يرتع فيه ألا وإن لكل ملك حمى ألا وإن حمى الله تعالى محارمه ألا وإن في الجسد مضغة إذا صلحت صلح الجسد كله وإذا فسدت فسد الجسد كله ألا وهي القلب",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 7,
+            title: "الدين النصيحة",
+            sanad: "عن أبي رقية تميم بن أوس الداري رضي الله عنه أن النبي صلى الله عليه وسلم قال",
+            matn: "الدين النصيحة قلنا لمن قال لله ولكتابه ولرسوله وللأئمة المسلمين وعامتهم",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 8,
+            title: "القتال على الشهادتين",
+            sanad: "عن ابن عمر رضي الله عنهما أن رسول الله صلى الله عليه وسلم قال",
+            matn: "امرت أن أقاتل الناس حتى يشهدوا أن لا إله إلا الله وأن محمدا رسول الله ويقيموا الصلاة ويؤتوا الزكاة فإذا فعلوا ذلك عصموا مني دماءهم وأموالهم إلا بحق الإسلام وحسابهم على الله تعالى",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 9,
+            title: "ما نهيتكم فاجتنبوه",
+            sanad: "عن أبي هريرة عبد الرحمن بن صخر رضي الله عنه قال سمعت رسول الله صلى الله عليه وسلم يقول",
+            matn: "ما نهيتكم عنه فاجتنبوه وما أمرتكم به فافعلوا منه ما استطعتم فإنما أهلك الذين من قبلكم كثرة مسائلهم واختلافهم على أنبيائهم",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 10,
+            title: "الطعام الحلال والحرام",
+            sanad: "عن أبي هريرة رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "إن الله تعالى طيب لا يقبل إلا طيبا وإن الله أمر المؤمنين بما أمر به المرسلين فقال تعالى يا أيها الرسل كلوا من الطيبات واعملوا صالحا وقال تعالى يا أيها الذين آمنوا كلوا من طيبات ما رزقناكم ثم ذكر الرجل يطيل السفر أشعث أغبر يمد يديه إلى السماء يا رب يا رب ومطعمه حرام ومشربه حرام وملبسه حرام وغذي بالحرام فأنى يستجاب لذلك",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 11,
+            title: "دع ما يريبك",
+            sanad: "عن أبي محمد الحسن بن علي بن أبي طالب سبط رسول الله صلى الله عليه وسلم وريحانته رضي الله عنهما قال حفظت من رسول الله صلى الله عليه وسلم",
+            matn: "دع ما يريبك إلى ما لا يريبك",
+            takhreej: "رواه الترمذي والنسائي وقال الترمذي حديث حسن صحيح"
+        },
+        {
+            id: 12,
+            title: "حسن إسلام المرء",
+            sanad: "عن أبي هريرة رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "من حسن إسلام المرء تركه ما لا يعنيه",
+            takhreej: "حديث حسن رواه الترمذي وغيره"
+        },
+        {
+            id: 13,
+            title: "الإيمان والحب",
+            sanad: "عن أبي حمزة أنس بن مالك رضي الله عنه خادم رسول الله صلى الله عليه وسلم عن النبي صلى الله عليه وسلم قال",
+            matn: "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 14,
+            title: "حرمة دم المسلم",
+            sanad: "عن ابن مسعود رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "لا يحل دم امرئ مسلم إلا بإحدى ثلاث الثيب الزاني والنفس بالنفس والتارك لدينه المفارق للجماعة",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 15,
+            title: "التكريم للجار والضيف",
+            sanad: "عن أبي هريرة رضي الله عنه عن رسول الله صلى الله عليه وسلم قال",
+            matn: "من كان يؤمن بالله واليوم الآخر فليقل خيرا أو ليصمت ومن كان يؤمن بالله واليوم الآخر فليكرم جاره ومن كان يؤمن بالله واليوم الآخر فليكرم ضيفه",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 16,
+            title: "عدم الغضب",
+            sanad: "عن أبي هريرة رضي الله عنه أن رجلا قال للنبي صلى الله عليه وسلم أوصني قال",
+            matn: "لا تغضب فردد مرارا قال لا تغضب",
+            takhreej: "رواه البخاري"
+        },
+        {
+            id: 17,
+            title: "الإحسان في القتل والذبح",
+            sanad: "عن أبي يعلى شداد بن أوس رضي الله عنه عن رسول الله صلى الله عليه وسلم قال",
+            matn: "إن الله كتب الإحسان على كل شيء فإذا قتلتم فأحسنوا القتلة وإذا ذبحتم فأحسنوا الذبحة ولليحد أحدكم شفرته وليرح ذبيحته",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 18,
+            title: "التقوى والخلق الحسن",
+            sanad: "عن أبي ذر جندب بن جنادة وأبي عبد الرحمن معاذ بن جبل رضي الله عنهما عن رسول الله صلى الله عليه وسلم قال",
+            matn: "اتق الله حيثما كنت وأتبع السيئة الحسنة تمحها وخالق الناس بخلق حسن",
+            takhreej: "رواه الترمذي وقال حديث حسن وفي بعض النسخ حسن صحيح"
+        },
+        {
+            id: 19,
+            title: "حفظ الله يحفظك",
+            sanad: "عن أبي العباس عبد الله بن عباس رضي الله عنهما قال كنت خلف النبي صلى الله عليه وسلم يوما فقال",
+            matn: "يا غلام إني أعلمك كلمات احفظ الله يحفظك احفظ الله تجده تجاهك إذا سألت فاسأل الله وإذا استعنت فاستعن بالله واعلم أن الأمة لو اجتمعت على أن ينفعوك بشيء لم ينفعوك إلا بشيء قد كتبه الله لك وإن اجتمعوا على أن يضروك بشيء لم يضروك إلا بشيء قد كتبه الله عليك رفعت الأقلام وجفت الصحف",
+            takhreej: "رواه الترمذي وقال حديث حسن صحيح"
+        },
+        {
+            id: 20,
+            title: "من أدرك من كلام النبوة",
+            sanad: "عن أبي مسعود عقبة بن عمرو الأنصاري البدري رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "إن مما أدرك الناس من كلام النبوة الأولى إذا لم تستحي فاصنع ما شئت",
+            takhreej: "رواه البخاري"
+        },
+        {
+            id: 21,
+            title: "آمنت بالله ثم استقم",
+            sanad: "عن أبي عمرو سفيان بن عبد الله الثقفي رضي الله عنه قال قلت يا رسول الله قال قل لي في الإسلام قولا لا أسأل عنه أحدا غيرك قال",
+            matn: "قل آمنت بالله ثم استقم",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 22,
+            title: "الدخول إلى الجنة بالعمل الصالح",
+            sanad: "عن أبي عبد الله جابر بن عبد الله الأنصاري رضي الله عنهما أن رجلا سأل رسول الله صلى الله عليه وسلم فقال",
+            matn: "أرأيت إذا صليت المكتوبات وصمت رمضان وأحللت الحلال وحرمت الحرام ولم أزد على ذلك شيئا أأدخل الجنة قال نعم",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 23,
+            title: "الطهور شطر الإيمان",
+            sanad: "عن أبي مالك الحارث بن عاصم الأشعري رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "الطهور شطر الإيمان والحمد لله تملأ الميزان وسبحان الله والحمد لله تملآن ما بين السماوات والأرض والصلاة نور والصدقة برهان والصبر ضياء والقرآن حجة لك أو عليك كل الناس يغدو فبائع نفسه فمعتقها أو موبقها",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 24,
+            title: "تحريم الظلم",
+            sanad: "عن أبي ذر رضي الله عنه عن النبي صلى الله عليه وسلم فيما يروي عن الله عز وجل أنه قال",
+            matn: "يا عبادي إني حرمت الظلم على نفسي وجعلته بينكم محرما فلا تظالموا يا عبادي كلكم ضال إلا من هديته فاستهدوني أهدكم يا عبادي كلكم جائع إلا من أطعمته فاستطعموني أطعمكم يا عبادي كلكم عار إلا من كسوته فاستكسوني أكسكم يا عبادي إنكم تخطئون بالليل والنهار وأنا أغفر الذنوب جميعا فاستغفروني أغفر لكم يا عبادي إنكم لن تبلغوا ضري فتضروني ولن تبلغوا نفعي فتنفعوني يا عبادي لو أن أولكم وآخركم وإنسكم وجنكم كانوا على أتقى قلب رجل واحد منكم ما زاد ذلك في ملكي شيئا يا عبادي لو أن أولكم وآخركم وإنسكم وجنكم كانوا على أفجر قلب رجل واحد منكم ما نقص ذلك من ملكي شيئا يا عبادي لو أن أولكم وآخركم وإنسكم وجنكم قاموا في صعيد واحد فسألوني فأعطيت كل إنسان مسألته ما نقص ذلك مما عندي إلا كما ينقص المخيط إذا أدخل البحر يا عبادي إنما هي أعمالكم أحصيها لكم ثم أوفيكم إياها فمن وجد خيرا فليحمد الله ومن وجد غير ذلك فلا يلومن إلا نفسه",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 25,
+            title: "أوليس قد جعل الله لكم ما تتصدقون",
+            sanad: "عن أبي ذر رضي الله عنه أيضا أن ناسا من أصحاب رسول الله صلى الله عليه وسلم قالوا للنبي يا رسول الله ذهب أهل الدثور بالأجور يصلون كما نصلي ويصومون كما نصوم ويتصدقون بفضول أموالهم قال",
+            matn: "أوليس قد جعل الله لكم ما تصدقون به إن بكل تسبيحة صدقة وكل تكبيرة صدقة وكل تحميدة صدقة وكل تهليلة صدقة وأمر بالمعروف صدقة ونهي عن منكر صدقة وفي بضع أحدكم صدقة قالوا يا رسول الله أيأتي أحدنا شهوته ويكون له فيها أجر قال أرأيتم لو وضعها في حرام أكان عليه وزر فكذلك إذا وضعها في الحلال كان له أجر",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 26,
+            title: "كل سلامى من الناس عليه صدقة",
+            sanad: "عن أبي هريرة رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "كل سلامى من الناس عليه صدقة كل يوم تطلع فيه الشمس يعدل بين الاثنين صدقة ويعين الرجل في دابته فيحمله عليها أو يرفع له عليها متاعه صدقة والكلمة الطيبة صدقة وبكل خطوة يمشيها إلى الصلاة صدقة ويميط الأذى عن الطريق صدقة",
+            takhreej: "رواه البخاري ومسلم"
+        },
+        {
+            id: 27,
+            title: "البر وحسن الخلق",
+            sanad: "عن النواس بن سمعان رضي الله عنه عن النبي صلى الله عليه وسلم قال",
+            matn: "البر حسن الخلق والإثم ما حاك في نفسك وكرهت أن يطلع عليه الناس",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 28,
+            title: "الوصايا والسنة والبدعة",
+            sanad: "عن أبي نجيح العرباض بن سارية رضي الله عنه قال وعظنا رسول الله صلى الله عليه وسلم موعظة وجلت منها القلوب وذرفت منها العيون فقلنا يا رسول الله كأنها موعظة مودع فأوصنا قال",
+            matn: "أوصيكم بتقوى الله والسمع والطاعة وإن تأمر عليكم عبد فإنه من يعش منكم فسيرى اختلافا كثيرا فعليكم بسنتي وسنة الخلفاء الراشدين المهديين عضوا عليها بالنواجذ وإياكم ومحدثات الأمور فإن كل بدعة ضلالة",
+            takhreej: "رواه أبو داود والترمذي وقال حديث حسن صحيح"
+        },
+        {
+            id: 29,
+            title: "رأس الأمر والجهاد",
+            sanad: "عن معاذ بن جبل رضي الله عنه قال قلت يا رسول الله أخبرني بعمل يدخلني الجنة ويباعدني من النار قال",
+            matn: "لقد سألت عن عظيم وإنه ليسير على من يسره الله تعالى عليه تعبد الله لا تشرك به شيئا وتقيم الصلاة وتؤتي الزكاة وتصوم رمضان وتحج البيت ثم قال ألا أدلك على أبواب الخير الصوم جنة والصدقة تطفي الخطيئة كما يطفي الماء النار وصلاة الرجل من جوف الليل ثم قال ألا أخبرك برأس الأمر وعموده وذروة سنامه قلت بلى يا رسول الله قال رأس الأمر الإسلام وعموده الصلاة وذروة سنامه الجهاد ثم قال ألا أخبرك بملاك ذلك كله قلت بلى يا رسول الله فأخذ بلسانه ثم قال كف عليك هذا قلت يا نبي الله وإنا لمؤاخذون بما نتكلم به فقال ثكلتك أمك وهل يكب الناس في النار على وجوههم إلا حصائد ألسنتهم",
+            takhreej: "رواه الترمذي وقال حديث حسن صحيح"
+        },
+        {
+            id: 30,
+            title: "حدود الله الفرائض والمحارم",
+            sanad: "عن أبي ثعلبة الخشني جرثوم بن ناشر رضي الله عنه عن رسول الله صلى الله عليه وسلم قال",
+            matn: "إن الله عز وجل فرض فرائض فلا تضيعوها وحد حدودا فلا تعتدوها وحرم أشياء فلا تنتهكوها وسكت عن أشياء رحمة لكم غير نسيان فلا تبحثوا عنها",
+            takhreej: "حديث حسن رواه الدارقطني وغيره"
+        },
+        {
+            id: 31,
+            title: "الزهد في الدنيا",
+            sanad: "عن أبي العباس سهل بن سعد الساعدي رضي الله عنه قال جاء رجل إلى النبي صلى الله عليه وسلم فقال يا رسول الله دلني على عمل إذا عملته أحبني الله وأحبني الناس فقال",
+            matn: "أزهد في الدنيا يحبك الله وأزهد فيما عند الناس يحبك الناس",
+            takhreej: "حديث حسن رواه ابن ماجه وغيره بأسانيد حسنة"
+        },
+        {
+            id: 32,
+            title: "لا ضرر ولا ضرار",
+            sanad: "عن أبي سعيد سعد بن مالك بن سنان الخدري رضي الله عنه أن رسول الله صلى الله عليه وسلم قال",
+            matn: "لا ضرر ولا ضرار",
+            takhreej: "حديث حسن رواه ابن ماجه والدارقطني وغيرهما مسندا ورواه مالك في الموطأ عن عمرو بن يحيى عن أبيه عن النبي صلى الله عليه وسلم مرسلا فأسقط أبا سعيد وله طرق يقوى بعضها ببعض"
+        },
+        {
+            id: 33,
+            title: "البينة على المدعي واليمين على المنكر",
+            sanad: "عن ابن عباس رضي الله عنهما أن رسول الله صلى الله عليه وسلم قال",
+            matn: "لو يعطى الناس بدعواهم لادعى رجال أموال قوم ودماءهم لكن البينة على المدعي واليمين على من أنكر",
+            takhreej: "حديث حسن رواه البيهقي وغيره هكذا وبعضه في الصحيحين"
+        },
+        {
+            id: 34,
+            title: "تغيير المنكر",
+            sanad: "عن أبي سعيد الخدري رضي الله عنه قال سمعت رسول الله صلى الله عليه وسلم يقول",
+            matn: "من رأى منكم منكرا فليغيره بيده فإن لم يستطع فبلسانه فإن لم يستطع فبقلبه وذلك أضعف الإيمان",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 35,
+            title: "الأخوة الإسلامية والتحاسد",
+            sanad: "عن أبي هريرة رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "لا تحاسدوا ولا تناجشوا ولا تباغضوا ولا تدابروا ولا يبع بعضكم على بيع بعض وكونوا عباد الله إخوانا المسلم أخو المسلم لا يظلمه ولا يخذله ولا يكذبه ولا يحقره التقوى هاهنا ويشير إلى صدره ثلاث مرار بحسب امرئ من الشر أن يحقر أخاه المسلم كل المسلم على المسلم حرام دمه وماله وعرضه",
+            takhreej: "رواه مسلم"
+        },
+        {
+            id: 36,
+            title: "تفريج الكرب والعلم",
+            sanad: "عن أبي هريرة رضي الله عنه عن النبي صلى الله عليه وسلم قال",
+            matn: "من نفس عن مؤمن كربة من كرب الدنيا نفس الله عنه كربة من كرب يوم القيامة ومن يسر على معسر يسر الله عليه في الدنيا والآخرة ومن ستر مسلما ستره الله في الدنيا والآخرة والله في عون العبد ما كان العبد في عون أخيه ومن سلك طريقا يلتمس فيه علما سهل الله له به طريقا إلى الجنة وما اجتمع قوم في بيت من بيوت الله يتلون كتاب الله ويتدارسونه بينهم إلا نزلت عليهم السكينة وغشيتهم الرحمة وحفتهم الملائكة وذكرهم الله فيمن عنده ومن بطأ به عمله لم يسرع به نسبه",
+            takhreej: "رواه مسلم بهذا اللفظ"
+        },
+        {
+            id: 37,
+            title: "الحسنات والسيئات عند الله",
+            sanad: "عن ابن عباس رضي الله عنهما عن رسول الله صلى الله عليه وسلم فيما يروي عن ربه تبارك وتعالى قال",
+            matn: "إن الله كتب الحسنات والسيئات ثم بين ذلك فمن هم بحسنة فلم يعملها كتبها الله عنده حسنة كاملة وإن هم بها فعملها كتبها الله عنده عشر حسنات إلى سبع مئة ضعف إلى أضعاف كثيرة وإن هم بسيئة فلم يعملها كتبها الله عنده حسنة كاملة وإن هم بها فعملها كتبها الله سيئة واحدة",
+            takhreej: "رواه البخاري ومسلم في صحيحيهما بهذه الحروف"
+        },
+        {
+            id: 38,
+            title: "الأولياء والتقرب إلى الله",
+            sanad: "عن أبي هريرة رضي الله عنه قال قال رسول الله صلى الله عليه وسلم",
+            matn: "إن الله تعالى قال من عادى لي وليا فقد آذنته بالحرب وما تقرب إلي عبدي بشيء أحب إلي مما افترضت عليه وما يزال عبدي يتقرب إلي بالنوافل حتى أحبه فإذا أحببته كنت سمعه الذي يسمع به وبصره الذي يبصر به ويده التي يبطش بها ورجله التي يمشي بها ولئن سألني لأعطينه ولئن استعاذني لأعيذنه",
+            takhreej: "رواه البخاري"
+        },
+        {
+            id: 39,
+            title: "الخطأ والنسيان والاستكراه",
+            sanad: "عن ابن عباس رضي الله عنهما أن رسول الله صلى الله عليه وسلم قال",
+            matn: "إن الله تجاوز لي عن أمتي الخطأ والنسيان وما استكرهوا عليه",
+            takhreej: "حديث حسن رواه ابن ماجه والبيهقي وغيرهما"
+        },
+        {
+            id: 40,
+            title: "كن في الدنيا كغريب",
+            sanad: "عن ابن عمر رضي الله عنهما قال أخذ رسول الله صلى الله عليه وسلم بمنكبي فقال",
+            matn: "كن في الدنيا كأنك غريب أو عابر سبيل وكان ابن عمر رضي الله عنهما يقول إذا أمسيت فلا تنتظر الصباح وإذا أصبحت فلا تنتظر المساء وخذ من صحتك لمرضك ومن حياتك لموتك",
+            takhreej: "رواه البخاري"
+        },
+        {
+            id: 41,
+            title: "الهوى تابع للشرع",
+            sanad: "عن أبي محمد عبد الله بن عمرو بن العاص رضي الله عنهما قال قال رسول الله صلى الله عليه وسلم",
+            matn: "لا يؤمن أحدكم حتى يكون هواه تبعا لما جئت به",
+            takhreej: "حديث صحيح رويناه في كتاب الحجة بإسناد صحيح"
+        },
+        {
+            id: 42,
+            title: "دعاء الله والاستغفار",
+            sanad: "عن أنس رضي الله عنه قال سمعت رسول الله صلى الله عليه وسلم يقول قال الله تعالى",
+            matn: "يا ابن آدم إنك ما دعوتني ورجوتني غفرت لك على ما كان منك ولا أبالي يا ابن آدم لو بلغت ذنوبك عنان السماء ثم استغفرتني غفرت لك ولا أبالي يا ابن آدم إنك لو أتيتني بقراب الأرض خطايا ثم لقيتني لا تشرك بي شيئا لأتيتك بقرابها مغفرة",
+            takhreej: "رواه الترمذي وقال حديث حسن صحيح"
+        }
+    ];
+
+    let currentIndex = 0;
+    let userStates = [];
+    let currentHintLevel = 0;
+    
+    let globalRecognition = null;
+    let isMicGloballyOn = false;
+    let micBaseIndex = 0;         
+    let totalVoiceResultsLength = 0;
+    let textSnapshots = { sanad: '', matn: '', takhreej: '' };
+    let activeField = 'sanad';
+
+    const segmentConfig = [
+        { key: 'sanad', label: 'السند', maxScore: 2 },
+        { key: 'matn', label: 'المتن', maxScore: 6 },
+        { key: 'takhreej', label: 'التخريج', maxScore: 2 }
+    ];
+
+    const appContainer = document.getElementById('quiz-app');
+
+    function buildEmptyState() {
+        return {
+            userFullText: '', checked: false,
+            currentScore: 0, diffHtml: '', correctHtml: '', isFullMark: false,
+            segmentResults: null,
+            userSanad: '',
+            userMatn: '',
+            userTakhreej: ''
+        };
+    }
+
+    function injectCorners() {
+        return `
+            <div class="corner-decoration top-right"></div>
+            <div class="corner-decoration top-left"></div>
+            <div class="corner-decoration bottom-right"></div>
+            <div class="corner-decoration bottom-left"></div>
+        `;
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('nawawi_theme');
+        if (savedTheme === 'light') document.body.classList.add('light-theme');
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('light-theme');
+        localStorage.setItem('nawawi_theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+        const btn = document.getElementById('theme-toggle');
+        if(btn) btn.innerText = document.body.classList.contains('light-theme') ? "الوضع الداكن" : "الوضع الفاتح";
+    }
+
+    function renderStartScreen() {
+        const savedState = localStorage.getItem('nawawi_quiz_state');
+        let resumeButton = savedState ? `<button class="start-btn" onclick="loadSavedQuiz()" style="background-color: var(--accent-color); color: var(--bg-color);">استكمال الاختبار السابق</button>` : '';
+        const currentThemeLabel = document.body.classList.contains('light-theme') ? "الوضع الداكن" : "الوضع الفاتح";
+
+        appContainer.innerHTML = `
+            ${injectCorners()}
+            <div class="header-controls">
+                <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">${currentThemeLabel}</button>
+            </div>
+            <div class="start-screen">
+                <h1>اختبار الأربعون النووية</h1>
+                <p>منظومة تسميع متسلسلة ومطابقة دقيقة للمتن الشامل</p>
+                <div class="decorative-line">❖</div>
+                ${resumeButton}
+                <button class="start-btn" onclick="startNewQuiz()">بدء اختبار جديد</button>
+                <div class="advanced-settings">
+                    <details>
+                        <summary>إعدادات متقدمة</summary>
+                        <button class="advanced-reset-link" onclick="clearSystemMemory()">مسح الذاكرة بالكامل Reset</button>
+                    </details>
+                </div>
+            </div>
+        `;
+    }
+
+    function clearSystemMemory() {
+        if (confirm("هل أنت متأكد من مسح جميع التقدم المحفوظ وإعادة ضبط المنظومة؟")) {
+            localStorage.removeItem('nawawi_quiz_state');
+            if (globalRecognition) { globalRecognition.stop(); isMicGloballyOn = false; globalRecognition = null; }
+            renderStartScreen();
+        }
+    }
+
+    function startNewQuiz() {
+        userStates = ahadithData.map(() => buildEmptyState());
+        currentIndex = 0;
+        currentHintLevel = 0;
+        textSnapshots = { sanad: '', matn: '', takhreej: '' };
+        activeField = 'sanad';
+        micBaseIndex = totalVoiceResultsLength; 
+        saveToLocalStorage();
+        renderCard();
+    }
+
+    function loadSavedQuiz() {
+        const savedData = JSON.parse(localStorage.getItem('nawawi_quiz_state'));
+        userStates = savedData.userStates.map((state, idx) => {
+            const normalized = { ...buildEmptyState(), ...state };
+            if (normalized.checked && !normalized.segmentResults) {
+                const evaluation = evaluateSegments(ahadithData[idx], getUserSegmentsFromState(normalized));
+                normalized.currentScore = evaluation.totalScore;
+                normalized.isFullMark = normalized.currentScore >= 9.9;
+                normalized.segmentResults = evaluation.segmentResults;
+            }
+            return normalized;
+        });
+        currentIndex = savedData.currentIndex;
+        currentHintLevel = 0;
+        textSnapshots = {
+            sanad: userStates[currentIndex].userSanad || '',
+            matn: userStates[currentIndex].userMatn || '',
+            takhreej: userStates[currentIndex].userTakhreej || ''
+        };
+        activeField = 'sanad';
+        micBaseIndex = totalVoiceResultsLength;
+        renderCard();
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('nawawi_quiz_state', JSON.stringify({ currentIndex, userStates }));
+    }
+
+    function normalizeArabic(text) {
+        if (!text) return "";
+        let t = text.trim();
+        t = t.replace(/[\u064B-\u065F\u0670]/g, '');
+        t = t.replace(/ـ/g, ''); 
+        t = t.replace(/صلي الله عليه وسلم/g, '').replace(/صلى الله عليه وسلم/g, '');
+        t = t.replace(/رضي الله عنه/g, '').replace(/رضي الله عنها/g, '').replace(/رضي الله عنهما/g, '').replace(/رضي الله عنهم/g, '');
+        
+        t = t.replace(/رواه\s+البخاري\s+و\s*مسلم/g, 'متفقعليه');
+        t = t.replace(/متفق\s+عليه/g, 'متفقعليه');
+        
+        t = t.replace(/[أإآ]/g, 'ا');
+        t = t.replace(/أن/g, 'ان');
+        t = t.replace(/إن/g, 'ان');
+        t = t.replace(/ؤ/g, 'و');
+        t = t.replace(/ئ/g, 'ي');
+        t = t.replace(/ء/g, '');
+        t = t.replace(/[ةه]/g, 'ه'); 
+        t = t.replace(/[ىي]/g, 'ي'); 
+        t = t.replace(/[،.«»"()🌀,:\[\]\-\/]/g, '');
+        t = t.replace(/\s+/g, ' ');
+        return t.trim();
+    }
+
+    function generateProgressiveHint(text, level) {
+        const words = text.trim().split(' ').filter(w => w);
+        if (level === 1) {
+            if (words.length <= 6) return text;
+            const step = Math.max(3, Math.round(words.length / 10));
+            return words.map((word, idx) => (idx % step === 0 ? word : '...')).join(' ');
+        } else if (level === 2) {
+            return words.map((word, idx) => (idx % 2 === 0 ? word : '[...]')).join(' ');
+        }
+        return text;
+    }
+
+    function handleHintClick() {
+        const hadith = ahadithData[currentIndex];
+        const hintBtn = document.getElementById(`hint-btn-main`);
+        const hintTextEl = document.getElementById(`hint-text-main`);
+        const combinedText = hadith.sanad + " " + hadith.matn + " " + hadith.takhreej;
+
+        if (currentHintLevel === 3) {
+            currentHintLevel = 0;
+            hintTextEl.innerHTML = '';
+            hintTextEl.style.display = 'none';
+            hintBtn.innerText = "تلميح بسيط";
+            return;
+        }
+
+        currentHintLevel++;
+        
+        if (currentHintLevel === 1) {
+            hintBtn.innerText = "تلميح متوسط (أكمل)";
+            hintTextEl.innerHTML = generateProgressiveHint(combinedText, 1);
+        } else if (currentHintLevel === 2) {
+            hintBtn.innerText = "عرض الحديث كاملاً";
+            hintTextEl.innerHTML = generateProgressiveHint(combinedText, 2);
+        } else if (currentHintLevel === 3) {
+            hintBtn.innerText = "إخفاء التلميح";
+            hintTextEl.innerHTML = `<b>السند:</b> ${hadith.sanad}<br><br><b>المتن:</b> ${hadith.matn}<br><br><b>التخريج:</b> ${hadith.takhreej}`;
+        }
+        hintTextEl.style.display = 'block';
+    }
+
+    function toggleGlobalMicrophone() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("ميزة التعرف الصوتي غير مدعومة في متصفحك الحالي. يرجى استخدام Chrome أو Safari.");
+            return;
+        }
+
+        const micBtn = document.getElementById('global-mic-trigger');
+
+        if (isMicGloballyOn) {
+            isMicGloballyOn = false;
+            if (globalRecognition) globalRecognition.stop();
+            return;
+        }
+
+        isMicGloballyOn = true;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ar-SA';
+        recognition.continuous = true;
+        recognition.interimResults = true; 
+
+        recognition.onstart = function() {
+            globalRecognition = recognition;
+            if(micBtn) micBtn.classList.add('global-mic-active');
+            if(micBtn) micBtn.innerText = "🛑 إيقاف التسميع الصوتي";
+        };
+
+        recognition.onresult = function(event) {
+            totalVoiceResultsLength = event.results.length;
+            let finalizedChunk = '';
+            let interimChunk = '';
+
+            for (let i = micBaseIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalizedChunk += event.results[i][0].transcript + ' ';
+                } else {
+                    interimChunk += event.results[i][0].transcript;
+                }
+            }
+
+            if (!userStates[currentIndex].checked) {
+                const fieldId = activeField === 'sanad' 
+                    ? 'hadith-sanad-input' 
+                    : (activeField === 'matn' ? 'hadith-matn-input' : 'hadith-takhreej-input');
+                const targetEl = document.getElementById(fieldId);
+                if (!targetEl) return;
+                
+                targetEl.value = (textSnapshots[activeField] + ' ' + finalizedChunk + ' ' + interimChunk).replace(/\s+/g, ' ').trim();
+                
+                if (finalizedChunk) {
+                    const updatedFinal = (textSnapshots[activeField] + ' ' + finalizedChunk).replace(/\s+/g, ' ').trim();
+                    if (activeField === 'sanad') userStates[currentIndex].userSanad = updatedFinal;
+                    if (activeField === 'matn') userStates[currentIndex].userMatn = updatedFinal;
+                    if (activeField === 'takhreej') userStates[currentIndex].userTakhreej = updatedFinal;
+                }
+            }
+        };
+
+        recognition.onend = function() {
+            if (isMicGloballyOn && globalRecognition) {
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.log("Mic context cleanup ongoing: ", e);
+                }
+            } else {
+                isMicGloballyOn = false;
+                globalRecognition = null;
+                const currentBtn = document.getElementById('global-mic-trigger');
+                if(currentBtn) {
+                    currentBtn.classList.remove('global-mic-active');
+                    currentBtn.innerText = "🎙️ تسميع صوتي";
+                }
+            }
+        };
+
+        recognition.start();
+    }
+
+    function diffWords(originalText, userText, maxFieldScore) {
+        const cleanOrig = originalText.trim().replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ');
+        const cleanUser = userText.trim().replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ');
+
+        const origTokens = cleanOrig.split(' ').filter(w => w);
+        const userTokens = cleanUser.split(' ').filter(w => w);
+
+        const origNormalized = origTokens.map(w => normalizeArabic(w));
+        const userNormalized = userTokens.map(w => normalizeArabic(w));
+
+        const m = origNormalized.length;
+        const n = userNormalized.length;
+        const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+        for (let i = 1; i <= m; i++) {
+            for (let j = 1; j <= n; j++) {
+                if (origNormalized[i - 1] === userNormalized[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+
+        let i = m, j = n;
+        const diff = [];
+        
+        while (i > 0 && j > 0) {
+            if (origNormalized[i - 1] === userNormalized[j - 1]) {
+                diff.unshift({ type: 'correct', word: userTokens[j - 1], origWord: origTokens[i - 1] });
+                i--; j--;
+            } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+                diff.unshift({ type: 'missing', word: origTokens[i - 1] });
+                i--;
+            } else {
+                diff.unshift({ type: 'added', word: userTokens[j - 1] });
+                j--;
+            }
+        }
+        
+        while (i > 0) { diff.unshift({ type: 'missing', word: origTokens[i - 1] }); i--; }
+        while (j > 0) { diff.unshift({ type: 'added', word: userTokens[j - 1] }); j--; }
+
+        const lcsLength = dp[m][n];
+        const maxLength = Math.max(m, n);
+        const score = maxLength === 0 ? maxFieldScore : (lcsLength / maxLength) * maxFieldScore;
+        
+        return { diff, score };
+    }
+
+    function generateDiffHtmls(diffData) {
+        let html = "";
+        let correctHtml = "";
+        diffData.forEach(item => {
+            if (item.type === 'correct') {
+                html += `<span class="diff-correct">${item.word}</span> `;
+                correctHtml += `<span class="diff-correct">${item.origWord}</span> `;
+            }
+            else if (item.type === 'added') {
+                html += `<span class="diff-error">${item.word}</span> `;
+            }
+            else if (item.type === 'missing') {
+                html += `<span class="diff-ghost">${item.word}</span> `;
+                correctHtml += `<span class="correct-highlight">${item.word}</span> `;
+            }
+        });
+        return { userHtml: html, bookHtml: correctHtml };
+    }
+
+    function formatScore(score) {
+        return score % 1 === 0 ? score : score.toFixed(1);
+    }
+
+    function getUserSegmentsFromState(state) {
+        return {
+            sanad: (state.userSanad || '').trim(),
+            matn: (state.userMatn || '').trim(),
+            takhreej: (state.userTakhreej || '').trim()
+        };
+    }
+
+    function evaluateSegments(hadith, userSegments) {
+        const segmentResults = {};
+        let totalScore = 0;
+
+        segmentConfig.forEach(segment => {
+            const correctText = hadith[segment.key] || '';
+            const userSegmentText = userSegments[segment.key] || '';
+            const evaluation = diffWords(correctText, userSegmentText, segment.maxScore);
+            const html = generateDiffHtmls(evaluation.diff);
+            segmentResults[segment.key] = {
+                score: evaluation.score,
+                maxScore: segment.maxScore,
+                diffHtml: html.userHtml,
+                correctHtml: html.bookHtml
+            };
+            totalScore += evaluation.score;
+        });
+
+        return { totalScore, segmentResults };
+    }
+
+    function buildSegmentReviewHtml(segment, segmentResult) {
+        if (!segmentResult) return '';
+        return `
+            <div class="segment-review">
+                <div class="segment-header">
+                    <span>${segment.label}</span>
+                    <span class="segment-score">${formatScore(segmentResult.score)} / ${segment.maxScore}</span>
+                </div>
+                <div class="responsive-comparison-grid">
+                    <div class="comparison-column">
+                        <h4>تسميعك المقارن:</h4>
+                        <div class="user-diff-box">${segmentResult.diffHtml}</div>
+                    </div>
+                    <div class="comparison-column">
+                        <h4>النص الصحيح:</h4>
+                        <div class="correct-text-box">${segmentResult.correctHtml}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function checkAnswer() {
+        const hadith = ahadithData[currentIndex];
+        const state = userStates[currentIndex];
+        const sanadInput = document.getElementById('hadith-sanad-input');
+        const matnInput = document.getElementById('hadith-matn-input');
+        const takhreejInput = document.getElementById('hadith-takhreej-input');
+        
+        if (!sanadInput || !matnInput || !takhreejInput) return;
+        const sanadText = sanadInput.value;
+        const matnText = matnInput.value;
+        const takhreejText = takhreejInput.value;
+
+        if (sanadText.trim() === '' && matnText.trim() === '' && takhreejText.trim() === '') {
+            alert("صندوق التسميع فارغ! الرجاء كتابة أو نطق الحديث أولاً لتصحيحه.");
+            return;
+        }
+        
+        state.userSanad = sanadText;
+        state.userMatn = matnText;
+        state.userTakhreej = takhreejText;
+
+        const evaluation = evaluateSegments(hadith, getUserSegmentsFromState(state));
+
+        state.currentScore = evaluation.totalScore;
+        state.checked = true;
+        state.isFullMark = state.currentScore >= 9.9;
+        state.segmentResults = evaluation.segmentResults;
+
+        saveToLocalStorage();
+        renderCard();
+    }
+
+    function renderCard() {
+        const hadith = ahadithData[currentIndex];
+        const state = userStates[currentIndex];
+        const currentTotalScore = userStates.reduce((sum, s) => sum + s.currentScore, 0);
+        const maxTotalPossible = ahadithData.length * 10;
+        const progressPercent = (currentIndex / ahadithData.length) * 100;
+        const currentThemeLabel = document.body.classList.contains('light-theme') ? "الوضع الداكن" : "الوضع الفاتح";
+
+        appContainer.innerHTML = `
+            ${injectCorners()}
+            <div class="header-controls">
+                <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">${currentThemeLabel}</button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" style="width: ${progressPercent}%"></div>
+            </div>
+
+            <div class="progress-header">
+                <div class="progress-text">الحديث ${currentIndex + 1} / ${ahadithData.length} : [ ${hadith.title} ]</div>
+                <div class="score-text">المجموع: ${currentTotalScore % 1 === 0 ? currentTotalScore : currentTotalScore.toFixed(1)} / ${maxTotalPossible}</div>
+            </div>
+
+            <div class="input-group">
+                <label>اكتب السند:</label>
+                <textarea id="hadith-sanad-input" style="height: 100px;" placeholder="اكتب السند هنا..." ${state.checked ? 'disabled' : ''}>${state.userSanad || ''}</textarea>
+                
+                <label style="margin-top:14px;">اكتب المتن أو نص الحديث:</label>
+                <textarea id="hadith-matn-input" style="height: 180px;" placeholder="اكتب متن الحديث هنا..." ${state.checked ? 'disabled' : ''}>${state.userMatn || ''}</textarea>
+                
+                <label style="margin-top:14px;">اكتب التخريج والمصدر:</label>
+                <textarea id="hadith-takhreej-input" style="height: 90px;" placeholder="اكتب التخريج هنا..." ${state.checked ? 'disabled' : ''}>${state.userTakhreej || ''}</textarea>
+                
+                <div class="mic-row">
+                    <button class="global-mic-btn ${isMicGloballyOn ? 'global-mic-active' : ''}" id="global-mic-trigger" onclick="toggleGlobalMicrophone()">
+                        ${isMicGloballyOn ? '🛑 إيقاف التسميع الصوتي' : '🎙️ تسميع صوتي'}
+                    </button>
+                </div>
+                ${!state.checked ? `<button class="internal-hint-btn" id="hint-btn-main" onclick="handleHintClick()">تلميح بسيط</button><div class="internal-hint-text" id="hint-text-main"></div>` : ''}
+            </div>
+            
+            ${!state.checked ? '<span class="instruction">اضغط Enter للتحقق من الحفظ والتقييم</span>' : ''}
+
+            <div id="feedback-area" class="feedback-section" style="display: ${state.checked ? 'block' : 'none'}"></div>
+
+            <div class="actions-row">
+                <button class="btn btn-secondary" onclick="prevCard()" ${currentIndex === 0 ? 'disabled' : ''}>السابق</button>
+                ${!state.checked ? 
+                    `<button class="btn btn-primary btn-main-action" id="action-btn" onclick="checkAnswer()">تحقق</button>` : 
+                    `<button class="btn btn-warning" id="action-btn" onclick="retryCard()">إعادة المحاولة</button>`
+                }
+                ${state.checked ? 
+                    `<button class="btn btn-secondary" id="next-btn" onclick="nextCard()">
+                        ${currentIndex === ahadithData.length - 1 ? 'إنهاء الاختبار' : 'التالي'}
+                    </button>` :
+                    `<button class="btn btn-skip" id="skip-btn" onclick="nextCard()">تخطي الحديث</button>`
+                }
+            </div>
+            <div class="decorative-line">❖</div>
+            <button class="btn btn-danger" style="padding:10px; width:100%; opacity:0.85;" onclick="confirmExitToHome()">العودة للقائمة الرئيسية</button>
+        `;
+
+        setupKeyboardEvents(state.checked);
+        if (state.checked) showFeedback(state);
+    }
+
+    function confirmExitToHome() {
+        if (confirm("هل تريد الخروج إلى القائمة الرئيسية؟ قد تفقد الجلسة الحالية غير المحفوظة.")) {
+            renderStartScreen();
+        }
+    }
+
+    function setupKeyboardEvents(isChecked) {
+        if (isChecked) {
+            const nextBtn = document.getElementById('next-btn');
+            if(nextBtn) {
+                nextBtn.focus();
+                nextBtn.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); nextCard(); }
+                });
+            }
+            return;
+        }
+
+        const handleEnter = function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                checkAnswer();
+            }
+        };
+
+        const inputs = [
+            { id: 'hadith-sanad-input', key: 'sanad' },
+            { id: 'hadith-matn-input', key: 'matn' },
+            { id: 'hadith-takhreej-input', key: 'takhreej' }
+        ];
+
+        inputs.forEach((item, idx) => {
+            const inputEl = document.getElementById(item.id);
+            if (!inputEl) return;
+            inputEl.addEventListener('keydown', handleEnter);
+            inputEl.addEventListener('focus', function() {
+                activeField = item.key;
+                textSnapshots[activeField] = inputEl.value;
+                micBaseIndex = totalVoiceResultsLength;
+            });
+            inputEl.addEventListener('input', function(e) {
+                if (item.key === 'sanad') userStates[currentIndex].userSanad = e.target.value;
+                if (item.key === 'matn') userStates[currentIndex].userMatn = e.target.value;
+                if (item.key === 'takhreej') userStates[currentIndex].userTakhreej = e.target.value;
+                textSnapshots[item.key] = e.target.value;
+                micBaseIndex = totalVoiceResultsLength; 
+            });
+            if (idx === 0) inputEl.focus();
+        });
+    }
+
+    function showFeedback(state) {
+        const feedbackArea = document.getElementById('feedback-area');
+        const badgeClass = state.isFullMark ? 'badge-success' : 'badge-error';
+        const formattedScore = formatScore(state.currentScore);
+
+        let htmlReport = `<div class="score-badge ${badgeClass}">${formattedScore} / 10</div>`;
+
+        htmlReport += `
+            <div style="font-size: 0.9em; margin-bottom: 4px; font-weight: bold; color: var(--accent-color);">مراجعة التسميع الكامل:</div>
+            <div class="diff-legend">
+                <span class="legend-item legend-error">الأحمر = زيادة/خطأ</span>
+                <span class="legend-item legend-missing">الأخضر = كلمات منسية</span>
+            </div>
+        `;
+
+        segmentConfig.forEach(segment => {
+            htmlReport += buildSegmentReviewHtml(segment, state.segmentResults[segment.key]);
+        });
+
+        feedbackArea.innerHTML = htmlReport;
+
+        const borderColor = state.isFullMark ? 'var(--success-border)' : 'var(--error-border)';
+        ['hadith-sanad-input', 'hadith-matn-input', 'hadith-takhreej-input'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.style.borderColor = borderColor;
+        });
+    }
+
+    function prevCard() {
+        saveCurrentInputs();
+        if (currentIndex > 0) { 
+            currentIndex--; 
+            textSnapshots = {
+                sanad: userStates[currentIndex].userSanad || '',
+                matn: userStates[currentIndex].userMatn || '',
+                takhreej: userStates[currentIndex].userTakhreej || ''
+            };
+            activeField = 'sanad';
+            micBaseIndex = totalVoiceResultsLength; 
+            renderCard(); 
+        }
+    }
+
+    function nextCard() {
+        saveCurrentInputs();
+        if (currentIndex < ahadithData.length - 1) { 
+            currentIndex++; 
+            textSnapshots = {
+                sanad: userStates[currentIndex].userSanad || '',
+                matn: userStates[currentIndex].userMatn || '',
+                takhreej: userStates[currentIndex].userTakhreej || ''
+            };
+            activeField = 'sanad';
+            micBaseIndex = totalVoiceResultsLength; 
+            renderCard(); 
+        } 
+        else { renderFinalScore(); }
+    }
+
+    function retryCard() {
+        userStates[currentIndex] = buildEmptyState();
+        currentHintLevel = 0;
+        textSnapshots = { sanad: '', matn: '', takhreej: '' };
+        activeField = 'sanad';
+        micBaseIndex = totalVoiceResultsLength;
+        saveToLocalStorage();
+        renderCard();
+    }
+
+    function saveCurrentInputs() {
+        const state = userStates[currentIndex];
+        if (state && !state.checked) {
+            const sanadInput = document.getElementById('hadith-sanad-input');
+            const matnInput = document.getElementById('hadith-matn-input');
+            const takhreejInput = document.getElementById('hadith-takhreej-input');
+            if (sanadInput) state.userSanad = sanadInput.value;
+            if (matnInput) state.userMatn = matnInput.value;
+            if (takhreejInput) state.userTakhreej = takhreejInput.value;
+        }
+    }
+
+    function renderFinalScore() {
+        localStorage.removeItem('nawawi_quiz_state');
+        if (globalRecognition) { globalRecognition.stop(); isMicGloballyOn = false; globalRecognition = null; }
+        const finalScore = userStates.reduce((sum, s) => sum + s.currentScore, 0);
+        const maxTotalPossible = ahadithData.length * 10;
+        const perfectedCount = userStates.filter(s => s.isFullMark).length;
+        const weakCount = ahadithData.length - perfectedCount;
+        const reviewRecommendation = weakCount === 0
+            ? "مستوى ممتاز، حافظ على المراجعة الدورية الخفيفة."
+            : "يوصى بمراجعة الأحاديث الضعيفة عبر تقرير الأخطاء الأسفل.";
+        
+        appContainer.innerHTML = `
+            ${injectCorners()}
+            <div class="final-screen">
+                <h2>النتيجة النهائية للاختبار الشامل</h2>
+                <div class="final-score">${finalScore % 1 === 0 ? finalScore : finalScore.toFixed(1)} / ${maxTotalPossible}</div>
+                <div class="final-stats">
+                    <div class="stat-item">الأحاديث المتقنة: ${perfectedCount}</div>
+                    <div class="stat-item">الأحاديث الضعيفة: ${weakCount}</div>
+                </div>
+                <div class="final-recommendation">توصية المراجعة: ${reviewRecommendation}</div>
+                
+                <div class="actions-row">
+                    <button class="btn btn-primary" onclick="renderStartScreen()">القائمة الرئيسية</button>
+                    <button class="btn btn-warning" onclick="showErrorsOnlyReport()">تقرير مراجعة الأخطاء</button>
+                </div>
+                <div id="errors-report-zone"></div>
+            </div>
+        `;
+    }
+
+    function showErrorsOnlyReport() {
+        const reportZone = document.getElementById('errors-report-zone');
+        reportZone.innerHTML = `<div class="errors-report-container"><h3>الأحاديث التي تحتاج إلى تثبيت ومراجعة:</h3></div>`;
+        
+        let hasErrors = false;
+
+        ahadithData.forEach((hadith, idx) => {
+            const state = userStates[idx];
+            if (!state.isFullMark) {
+                hasErrors = true;
+
+                const itemHtml = `
+                    <div class="error-report-item">
+                        <div class="error-report-title">الحديث [${idx + 1}]: ${hadith.title} (${formatScore(state.currentScore)} / 10)</div>
+                        ${segmentConfig.map(segment => buildSegmentReviewHtml(segment, state.segmentResults ? state.segmentResults[segment.key] : null)).join('')}
+                    </div>
+                `;
+                reportZone.firstChild.insertAdjacentHTML('beforeend', itemHtml);
+            }
+        });
+
+        if (!hasErrors) {
+            reportZone.firstChild.insertAdjacentHTML('beforeend', `<p style="color:var(--success-color); font-weight:bold; text-align:center;">الحمد لله، الحفظ كامل ومتقن ولا توجد أخطاء لمراجعتها.</p>`);
+        }
+        
+        reportZone.firstChild.insertAdjacentHTML('beforeend', `<button class="btn btn-secondary" style="width:100%; margin-top:15px;" onclick="renderStartScreen()">العودة للقائمة الرئيسية</button>`);
+    }
+
+    initTheme();
+    renderStartScreen();
+</script>
+</body>
+</html>
