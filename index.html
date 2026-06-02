@@ -858,9 +858,7 @@
                 </div>
                 <textarea id="hadith-takhreej-input" style="height: 90px;" placeholder="اكتب التخريج هنا..." ${state.checked ? 'disabled' : ''}>${state.userTakhreej || ''}</textarea>
                 
-                <div style="margin-top:14px;">
-                    ${!state.checked ? `<button class="internal-hint-btn" id="hint-btn-main" onclick="handleHintClick()">تلميح بسيط</button><div class="internal-hint-text" id="hint-text-main"></div>` : ''}
-                </div>
+                
             </div>
             
             ${!state.checked ? '<span class="instruction">اضغط Enter للتحقق من التسميع والتقييم</span>' : ''}
