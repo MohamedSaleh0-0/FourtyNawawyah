@@ -350,48 +350,51 @@ const ahadithData = [
     }
 
     function renderStartScreen() {
-        let savedState = null;
-        try { savedState = localStorage.getItem('nawawi_quiz_state'); } catch (e) {}
-        let resumeButton = savedState ? `<button class="start-btn" onclick="loadSavedQuiz()" style="background-color: var(--accent-color); color: var(--bg-color);">استكمال الاختبار السابق</button>` : '';
-        const currentThemeLabel = document.body.classList.contains('light-theme') ? "☀️ وضع نهاري" : "🌙 وضع ليلي";
+    let savedState = null;
+    try { savedState = localStorage.getItem('nawawi_quiz_state'); } catch (e) {}
+    let resumeButton = savedState ? `<button class="start-btn" onclick="loadSavedQuiz()" style="background-color: var(--accent-color); color: var(--bg-color);">استكمال الاختبار السابق</button>` : '';
+    const currentThemeLabel = document.body.classList.contains('light-theme') ? "☀️ وضع نهاري" : "🌙 وضع ليلي";
 
-        const appContainer = id('quiz-app');
-        if (!appContainer) return;
+    const appContainer = id('quiz-app');
+    if (!appContainer) return;
 
-        const cachedCustomKey = localStorage.getItem('custom_groq_key') || '';
+    const cachedCustomKey = localStorage.getItem('custom_groq_key') || '';
 
-        appContainer.innerHTML = `
-            ${injectCorners()}
-            <div class="header-controls">
-                <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">${currentThemeLabel}</button>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 0.85em; color: var(--text-muted); font-weight: bold;">تغيير المايك:</span>
-                    <select class="engine-select-style" onchange="setAudioEngine(this.value)">
-                        <option value="whisper" ${audioEngine === 'whisper' ? 'selected' : ''}>🎙️ سحابة Whisper</option>
-                        <option value="browser" ${audioEngine === 'browser' ? 'selected' : ''}>🌐 مايك المتصفح محلي</option>
-                    </select>
-                </div>
+    appContainer.innerHTML = `
+        ${injectCorners()}
+        <div class="header-controls">
+            <button class="theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()">${currentThemeLabel}</button>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.85em; color: var(--text-muted); font-weight: bold;">تغيير المايك:</span>
+                <select class="engine-select-style" onchange="setAudioEngine(this.value)">
+                    <option value="whisper" ${audioEngine === 'whisper' ? 'selected' : ''}>🎙️ سحابة Whisper</option>
+                    <option value="browser" ${audioEngine === 'browser' ? 'selected' : ''}>🌐 مايك المتصفح محلي</option>
+                </select>
             </div>
-            <div class="start-screen">
-                <h1>اختبار الأربعون النووية</h1>
-                <p>منظومة تسميع سحابية ذكية ومطابقة دقيقة للمتن الشامل</p>
-                <div class="decorative-line">❖</div>
-                ${resumeButton}
-                <button class="start-btn" onclick="startNewQuiz()">بدء اختبار جديد</button>
-                <div class="advanced-settings">
-                    <details>
-                        <summary>⚙️ خيارات ومفتاح الـ API الخاص بك</summary>
-                        <div style="text-align:right; font-size:0.85em; background:rgba(255,255,255,0.02); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
-                            <label style="font-weight:bold; color:var(--accent-color);">مفتاح Groq API الشخصي:</label>
-                            <input type="password" id="custom-key-field" class="key-input-style" value="${cachedCustomKey}" placeholder="gsk_..." onchange="localStorage.setItem('custom_groq_key', this.value.trim())">
-                            <span style="font-size:0.8em; color:var(--text-muted); display:block; margin-top:4px;">اتركه فارغاً لاستخدام المفتاح الافتراضي للمنظومة تلقائياً.</span>
-                        </div>
-                        <button class="advanced-reset-link" onclick="clearSystemMemory()">مسح الذاكرة بالكامل Reset</button>
-                    </details>
-                </div>
+        </div>
+        <div class="start-screen">
+            <h1>اختبار الأربعون النووية</h1>
+            <p>منظومة تسميع سحابية ذكية ومطابقة دقيقة للمتن الشامل</p>
+            <div class="decorative-line">❖</div>
+            ${resumeButton}
+            <button class="start-btn" onclick="startNewQuiz()">بدء اختبار جديد</button>
+            <div class="advanced-settings">
+                <details>
+                    <summary>⚙️ خيارات ومفتاح الـ API الخاص بك</summary>
+                    <div style="text-align:right; font-size:0.85em; background:rgba(255,255,255,0.02); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+                        <label style="font-weight:bold; color:var(--accent-color);">مفتاح Groq API الشخصي:</label>
+                        <input type="password" id="custom-key-field" class="key-input-style" value="${cachedCustomKey}" placeholder="gsk_..." onchange="localStorage.setItem('custom_groq_key', this.value.trim())">
+                        
+                        <a href="https://console.groq.com/keys" target="_blank" style="display: block; margin-top: 10px; padding: 8px; background-color: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 6px; text-decoration: none; font-size: 0.9em; text-align: center; transition: all 0.2s; font-weight: 700;" onmouseover="this.style.backgroundColor='var(--accent-color)'; this.style.color='var(--card-bg)';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--accent-color)';">🔑 إنشاء أو جلب مفتاح API مجاني في ثوانٍ</a>
+                        
+                        <span style="font-size:0.8em; color:var(--text-muted); display:block; margin-top:8px;">اتركه فارغاً لاستخدام المفتاح الافتراضي للمنظومة تلقائياً.</span>
+                    </div>
+                    <button class="advanced-reset-link" onclick="clearSystemMemory()">مسح الذاكرة بالكامل Reset</button>
+                </details>
             </div>
-        `;
-    }
+        </div>
+    `;
+}
 
     function clearSystemMemory() {
         if (confirm("هل أنت متأكد من مسح جميع التقدم المحفوظ وإعادة ضبط المنظومة؟")) {
