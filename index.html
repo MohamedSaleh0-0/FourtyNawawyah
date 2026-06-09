@@ -512,10 +512,10 @@ const ahadithData = [
             // حقن الـ 4 حسابات كاملة وصريحة هنا مباشرة في واجهة الفرونت إند
             const keysToTry = [
                 localStorage.getItem('custom_groq_key'), // المفتاح المخصص يدويًا من الإعدادات المتقدمة
-                "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", // المفتاح الأول
-                "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", // المفتاح الثاني
-                "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", // المفتاح الثالث المستخرج من البيئة
-                "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"  // المفتاح الرابع المستخرج من البيئة
+                "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", 
+                "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", 
+                "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", 
+                "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"  
             ].map(k => k ? k.trim() : null).filter(Boolean);
 
             try {
